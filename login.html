@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <title>Entrar — YumiStore</title>
-  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body class="auth-body">
   <div class="auth-card">
-    <a href="/" class="logo">🌸 Yumi<span>Store</span></a>
+    <a href="index.html" class="logo">🌸 Yumi<span>Store</span></a>
     <h2>Entrar na sua conta</h2>
     <form id="loginForm">
       <label>E-mail<input type="email" name="email" required placeholder="seu@email.com"></label>
@@ -15,16 +15,16 @@
       <button type="submit" class="btn-primary full">Entrar</button>
       <p class="error" id="errorMsg"></p>
     </form>
-    <p class="auth-footer">Não tem conta? <a href="/register">Cadastre-se</a></p>
+    <p class="auth-footer">Não tem conta? <a href="register.html">Cadastre-se</a></p>
   </div>
+  <script src="app.js"></script>
   <script>
-    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    document.getElementById('loginForm').addEventListener('submit', (e) => {
       e.preventDefault();
       const body = Object.fromEntries(new FormData(e.target));
-      const res = await fetch('/api/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-      const data = await res.json();
-      if (data.success) window.location.href = '/dashboard';
-      else document.getElementById('errorMsg').textContent = data.error;
+      const res = login(body.email, body.password);
+      if (res.success) window.location.href = 'dashboard.html';
+      else document.getElementById('errorMsg').textContent = res.error;
     });
   </script>
 </body>
