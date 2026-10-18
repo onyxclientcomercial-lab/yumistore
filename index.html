@@ -4,18 +4,20 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>YumiStore — Sua loja Minecraft</title>
-  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <header class="header">
     <div class="container header-inner">
-      <a href="/" class="logo">🌸 Yumi<span>Store</span></a>
+      <a href="index.html" class="logo">🌸 Yumi<span>Store</span></a>
       <nav>
         <a href="#produtos">Produtos</a>
-        <a href="/support">Atendimento</a>
-        <a href="/cart" class="cart-link">🛒 Carrinho <span id="cartCount" class="badge">0</span></a>
-        <a href="/login" class="btn-outline">Entrar</a>
-        <a href="/register" class="btn-primary">Criar conta</a>
+        <a href="support.html">Atendimento</a>
+        <a href="cart.html" class="cart-link">🛒 <span class="cart-badge">0</span></a>
+        <span id="navAuth">
+          <a href="login.html" class="btn-outline">Entrar</a>
+          <a href="register.html" class="btn-primary">Criar conta</a>
+        </span>
       </nav>
     </div>
   </header>
@@ -26,7 +28,7 @@
       <p>Sua loja de confiança em produtos e serviços de Minecraft.<br>Preços acessíveis, entrega rápida e suporte 24/7.</p>
       <div class="hero-actions">
         <a href="#produtos" class="btn-primary">Ver produtos</a>
-        <a href="/support" class="btn-outline">Abrir atendimento</a>
+        <a href="support.html" class="btn-outline">Abrir atendimento</a>
       </div>
       <div class="hero-badges">
         <span>✅ Entrega imediata</span>
@@ -62,35 +64,20 @@
     </div>
   </footer>
 
+  <script src="app.js"></script>
   <script>
-    let cart = JSON.parse(localStorage.getItem('yumi_cart') || '[]');
-    function updateCartBadge() {
-      document.getElementById('cartCount').textContent = cart.reduce((s, i) => s + i.qty, 0);
-    }
-    function addToCart(id) {
-      const existing = cart.find(i => i.id === id);
-      if (existing) existing.qty++;
-      else cart.push({ id, qty: 1 });
-      localStorage.setItem('yumi_cart', JSON.stringify(cart));
-      updateCartBadge();
-      alert('✅ Adicionado ao carrinho!');
-    }
-    updateCartBadge();
-
-    fetch('/api/products').then(r => r.json()).then(products => {
-      document.getElementById('productsGrid').innerHTML = products.map(p => `
-        <div class="product-card">
-          <div class="product-icon">${p.icon}</div>
-          <span class="tag">${p.category}</span>
-          <h3>${p.name}</h3>
-          <p class="desc">${p.desc}</p>
-          <div class="product-bottom">
-            <span class="price">R$ ${p.price.toFixed(2)}</span>
-            <button class="btn-primary small" onclick="addToCart(${p.id})">Adicionar</button>
-          </div>
+    document.getElementById('productsGrid').innerHTML = PRODUCTS.map(p => `
+      <div class="product-card">
+        <div class="product-icon">${p.icon}</div>
+        <span class="tag">${p.category}</span>
+        <h3>${p.name}</h3>
+        <p class="desc">${p.desc}</p>
+        <div class="product-bottom">
+          <span class="price">R$ ${p.price.toFixed(2)}</span>
+          <button class="btn-primary small" onclick="addToCart(${p.id}); this.textContent='✅ Adicionado'; setTimeout(()=>this.textContent='Adicionar',1200)">Adicionar</button>
         </div>
-      `).join('');
-    });
+      </div>
+    `).join('');
   </script>
 </body>
 </html>
