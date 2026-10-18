@@ -3,18 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <title>Minha Conta — YumiStore</title>
-  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body class="auth-body wide-body">
   <div class="dashboard-card">
     <div class="dashboard-header">
-      <a href="/" class="logo">🌸 Yumi<span>Store</span></a>
+      <a href="index.html" class="logo">🌸 Yumi<span>Store</span></a>
       <h2>Olá, <span id="username">...</span>!</h2>
     </div>
 
     <div class="dashboard-info">
       <div class="info-box"><span class="label">E-mail</span><strong id="email">...</strong></div>
-      <div class="info-box"><span class="label">Saldo</span><strong id="balance" class="green">R$ 0,00</strong></div>
+      <div class="info-box"><span class="label">Saldo</span><strong id="balance">R$ 0,00</strong></div>
       <div class="info-box"><span class="label">Pedidos</span><strong id="ordersCount">0</strong></div>
       <div class="info-box"><span class="label">Tickets</span><strong id="ticketsCount">0</strong></div>
     </div>
@@ -22,83 +22,79 @@
     <div class="topup-box">
       <h3>Adicionar saldo (simulação de pagamento)</h3>
       <div class="topup-actions">
-        <button class="btn-outline small" onclick="topup(10)">+ R$10</button>
-        <button class="btn-outline small" onclick="topup(25)">+ R$25</button>
-        <button class="btn-outline small" onclick="topup(50)">+ R$50</button>
-        <button class="btn-outline small" onclick="topup(100)">+ R$100</button>
+        <button class="btn-outline small" onclick="doTopup(10)">+ R$10</button>
+        <button class="btn-outline small" onclick="doTopup(25)">+ R$25</button>
+        <button class="btn-outline small" onclick="doTopup(50)">+ R$50</button>
+        <button class="btn-outline small" onclick="doTopup(100)">+ R$100</button>
       </div>
     </div>
 
     <div class="dashboard-section">
       <h3>📦 Meus Pedidos</h3>
-      <div id="ordersList" class="orders-list"><p class="empty">Nenhum pedido ainda.</p></div>
+      <div id="ordersList" class="orders-list"></div>
     </div>
 
     <div class="dashboard-section">
-      <h3>💬 Meus Tickets de Atendimento</h3>
-      <div id="ticketsList" class="tickets-list"><p class="empty">Nenhum ticket aberto.</p></div>
+      <h3>💬 Meus Tickets</h3>
+      <div id="ticketsList" class="tickets-list"></div>
     </div>
 
     <div class="dashboard-actions">
-      <a href="/" class="btn-outline">Voltar à loja</a>
-      <a href="/cart" class="btn-outline">Ver carrinho</a>
-      <a href="/support" class="btn-primary">Abrir atendimento</a>
+      <a href="index.html" class="btn-outline">Voltar à loja</a>
+      <a href="cart.html" class="btn-outline">Ver carrinho</a>
+      <a href="support.html" class="btn-primary">Abrir atendimento</a>
       <button id="logoutBtn" class="btn-primary danger">Sair</button>
     </div>
   </div>
 
+  <script src="app.js"></script>
   <script>
-    let me;
-    async function load() {
-      const r = await fetch('/api/me');
-      if (r.status === 401) return window.location.href = '/login';
-      me = await r.json();
-      document.getElementById('username').textContent = me.username;
-      document.getElementById('email').textContent = me.email;
-      document.getElementById('balance').textContent = 'R$ ' + me.balance.toFixed(2);
-      document.getElementById('ordersCount').textContent = me.orders.length;
-      document.getElementById('ticketsCount').textContent = me.tickets.length;
+    if (!requireLogin()) throw new Error('redirect');
 
-      // Pedidos
+    function render() {
+      const user = currentUser();
+      if (!user) return window.location.href = 'login.html';
+      document.getElementById('username').textContent = user.username;
+      document.getElementById('email').textContent = user.email;
+      document.getElementById('balance').textContent = 'R$ ' + user.balance.toFixed(2);
+
+      const orders = getOrders().filter(o => o.userId === user.id);
+      const tickets = getTickets().filter(t => t.userId === user.id);
+      document.getElementById('ordersCount').textContent = orders.length;
+      document.getElementById('ticketsCount').textContent = tickets.length;
+
       const ol = document.getElementById('ordersList');
-      ol.innerHTML = me.orders.length ? me.orders.slice().reverse().map(o => `
+      ol.innerHTML = orders.length ? orders.slice().reverse().map(o => `
         <div class="order-item">
           <div>
             <strong>${o.id}</strong> — <span class="status">${o.status}</span>
             <div class="small muted">${new Date(o.createdAt).toLocaleString('pt-BR')} — ${o.items.map(i => i.name + ' x' + i.qty).join(', ')}</div>
           </div>
           <span class="price">R$ ${o.total.toFixed(2)}</span>
-        </div>
-      `).join('') : '<p class="empty">Nenhum pedido ainda.</p>';
+        </div>`).join('') : '<p class="empty">Nenhum pedido ainda.</p>';
 
-      // Tickets
       const tl = document.getElementById('ticketsList');
-      tl.innerHTML = me.tickets.length ? me.tickets.slice().reverse().map(t => `
-        <a class="ticket-item" href="/ticket?id=${t.id}">
+      tl.innerHTML = tickets.length ? tickets.slice().reverse().map(t => `
+        <a class="ticket-item" href="ticket.html?id=${t.id}">
           <div>
-            <strong>${t.subject}</strong>
+            <strong>${escapeHtml(t.subject)}</strong>
             <div class="small muted">${new Date(t.createdAt).toLocaleString('pt-BR')}</div>
           </div>
           <span class="ticket-status ${t.status === 'Resolvido' ? 'ok' : ''}">${t.status}</span>
-        </a>
-      `).join('') : '<p class="empty">Nenhum ticket aberto.</p>';
+        </a>`).join('') : '<p class="empty">Nenhum ticket aberto.</p>';
     }
 
-    async function topup(amount) {
-      const r = await fetch('/api/topup', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ amount }) });
-      const data = await r.json();
-      if (data.success) {
-        document.getElementById('balance').textContent = 'R$ ' + data.balance.toFixed(2);
-        alert('✅ Saldo adicionado!');
-      } else alert('❌ ' + data.error);
+    function doTopup(v) {
+      const r = topup(v);
+      if (r.success) { render(); alert('✅ Saldo adicionado!'); }
+      else alert('❌ ' + r.error);
     }
 
-    document.getElementById('logoutBtn').addEventListener('click', async () => {
-      await fetch('/api/logout', { method: 'POST' });
-      window.location.href = '/';
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      logout(); window.location.href = 'index.html';
     });
 
-    load();
+    render();
   </script>
 </body>
 </html>
