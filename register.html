@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <title>Criar conta — YumiStore</title>
-  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body class="auth-body">
   <div class="auth-card">
-    <a href="/" class="logo">🌸 Yumi<span>Store</span></a>
+    <a href="index.html" class="logo">🌸 Yumi<span>Store</span></a>
     <h2>Criar nova conta</h2>
     <form id="registerForm">
       <label>Nome de usuário<input type="text" name="username" required minlength="3" maxlength="20" placeholder="SteveBR"></label>
@@ -16,16 +16,20 @@
       <button type="submit" class="btn-primary full">Criar conta</button>
       <p class="error" id="errorMsg"></p>
     </form>
-    <p class="auth-footer">Já tem conta? <a href="/login">Entrar</a></p>
+    <p class="auth-footer">Já tem conta? <a href="login.html">Entrar</a></p>
   </div>
+  <script src="app.js"></script>
   <script>
-    document.getElementById('registerForm').addEventListener('submit', async (e) => {
+    document.getElementById('registerForm').addEventListener('submit', (e) => {
       e.preventDefault();
       const body = Object.fromEntries(new FormData(e.target));
-      const res = await fetch('/api/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-      const data = await res.json();
-      if (data.success) window.location.href = '/login';
-      else document.getElementById('errorMsg').textContent = data.error;
+      const res = register(body.username, body.email, body.password);
+      if (res.success) {
+        alert('✅ Conta criada! Faça login.');
+        window.location.href = 'login.html';
+      } else {
+        document.getElementById('errorMsg').textContent = res.error;
+      }
     });
   </script>
 </body>
