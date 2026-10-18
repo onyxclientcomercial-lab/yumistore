@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Criar conta — YumiStore</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="auth-body">
+  <div class="auth-card">
+    <a href="/" class="logo">🌸 Yumi<span>Store</span></a>
+    <h2>Criar nova conta</h2>
+    <form id="registerForm">
+      <label>Nome de usuário<input type="text" name="username" required minlength="3" maxlength="20" placeholder="SteveBR"></label>
+      <label>E-mail<input type="email" name="email" required placeholder="seu@email.com"></label>
+      <label>Senha (mín. 8)<input type="password" name="password" required minlength="8" placeholder="••••••••"></label>
+      <button type="submit" class="btn-primary full">Criar conta</button>
+      <p class="error" id="errorMsg"></p>
+    </form>
+    <p class="auth-footer">Já tem conta? <a href="/login">Entrar</a></p>
+  </div>
+  <script>
+    document.getElementById('registerForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const body = Object.fromEntries(new FormData(e.target));
+      const res = await fetch('/api/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      const data = await res.json();
+      if (data.success) window.location.href = '/login';
+      else document.getElementById('errorMsg').textContent = data.error;
+    });
+  </script>
+</body>
+</html>
