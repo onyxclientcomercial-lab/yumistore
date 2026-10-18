@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Atendimento — YumiStore</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="auth-body wide-body">
+  <div class="dashboard-card">
+    <a href="/" class="logo">🌸 Yumi<span>Store</span></a>
+    <h2 style="text-align:center;">💬 Central de Atendimento</h2>
+    <p class="center muted" style="margin-bottom:24px;">Abra um ticket e nossa equipe responderá em até 24h.</p>
+
+    <div class="support-contacts">
+      <div class="info-box"><span class="label">Discord</span><strong>discord.gg/yumistore</strong></div>
+      <div class="info-box"><span class="label">E-mail</span><strong>suporte@yumistore.com</strong></div>
+      <div class="info-box"><span class="label">WhatsApp</span><strong>(11) 99999-9999</strong></div>
+    </div>
+
+    <h3 style="margin-top:32px;">Abrir novo ticket</h3>
+    <form id="ticketForm">
+      <label>Assunto<input type="text" name="subject" required maxlength="100" placeholder="Ex.: Não recebi meu produto"></label>
+      <label>Mensagem<textarea name="message" required maxlength="2000" rows="5" placeholder="Descreva seu problema..."></textarea></label>
+      <button type="submit" class="btn-primary full">Enviar ticket</button>
+      <p class="error" id="errorMsg"></p>
+      <p class="success" id="successMsg"></p>
+    </form>
+
+    <div class="dashboard-actions" style="margin-top:24px;">
+      <a href="/dashboard" class="btn-outline">Meu painel</a>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('ticketForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const body = Object.fromEntries(new FormData(e.target));
+      const res = await fetch('/api/tickets', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      if (res.status === 401) return window.location.href = '/login';
+      const data = await res.json();
+      if (data.success) {
+        document.getElementById('successMsg').textContent = '✅ Ticket ' + data.ticket.id + ' aberto! Redirecionando...';
+        setTimeout(() => window.location.href = '/ticket?id=' + data.ticket.id, 1500);
+      } else {
+        document.getElementById('errorMsg').textContent = data.error;
+      }
+    });
+  </script>
+</body>
+</html>
