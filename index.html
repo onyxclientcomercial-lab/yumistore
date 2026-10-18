@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YumiStore — Sua loja Minecraft</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <header class="header">
+    <div class="container header-inner">
+      <a href="/" class="logo">🌸 Yumi<span>Store</span></a>
+      <nav>
+        <a href="#produtos">Produtos</a>
+        <a href="/support">Atendimento</a>
+        <a href="/cart" class="cart-link">🛒 Carrinho <span id="cartCount" class="badge">0</span></a>
+        <a href="/login" class="btn-outline">Entrar</a>
+        <a href="/register" class="btn-primary">Criar conta</a>
+      </nav>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="container">
+      <h1>Bem-vindo(a) à <span class="green">YumiStore</span></h1>
+      <p>Sua loja de confiança em produtos e serviços de Minecraft.<br>Preços acessíveis, entrega rápida e suporte 24/7.</p>
+      <div class="hero-actions">
+        <a href="#produtos" class="btn-primary">Ver produtos</a>
+        <a href="/support" class="btn-outline">Abrir atendimento</a>
+      </div>
+      <div class="hero-badges">
+        <span>✅ Entrega imediata</span>
+        <span>🔒 Pagamento seguro</span>
+        <span>⭐ +5.000 clientes</span>
+      </div>
+    </div>
+  </section>
+
+  <section id="produtos" class="section">
+    <div class="container">
+      <h2>Nossos Produtos</h2>
+      <div class="products-grid" id="productsGrid"></div>
+    </div>
+  </section>
+
+  <section class="section dark">
+    <div class="container">
+      <h2>Avaliações de Clientes</h2>
+      <div class="reviews-grid">
+        <div class="review-card"><div class="stars">★★★★★</div><p>"Empresa ótima, sempre entregando produtos com excelente suporte."</p><strong>— Miguel Caporal</strong></div>
+        <div class="review-card"><div class="stars">★★★★★</div><p>"Comprei Java + Bedrock e veio tudo certinho."</p><strong>— Vinicius Alexandre</strong></div>
+        <div class="review-card"><div class="stars">★★★★★</div><p>"Melhor loja de Minecraft, suporte excelente."</p><strong>— Robert Soares</strong></div>
+        <div class="review-card"><div class="stars">★★★★★</div><p>"Entrega rápida e atendimento humanizado. Recomendo!"</p><strong>— Gustavo Lima</strong></div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="container">
+      <p>© 2025 YumiStore. Todos os direitos reservados.</p>
+      <p class="small">Não afiliada à Mojang AB. Minecraft é marca da Mojang.</p>
+    </div>
+  </footer>
+
+  <script>
+    let cart = JSON.parse(localStorage.getItem('yumi_cart') || '[]');
+    function updateCartBadge() {
+      document.getElementById('cartCount').textContent = cart.reduce((s, i) => s + i.qty, 0);
+    }
+    function addToCart(id) {
+      const existing = cart.find(i => i.id === id);
+      if (existing) existing.qty++;
+      else cart.push({ id, qty: 1 });
+      localStorage.setItem('yumi_cart', JSON.stringify(cart));
+      updateCartBadge();
+      alert('✅ Adicionado ao carrinho!');
+    }
+    updateCartBadge();
+
+    fetch('/api/products').then(r => r.json()).then(products => {
+      document.getElementById('productsGrid').innerHTML = products.map(p => `
+        <div class="product-card">
+          <div class="product-icon">${p.icon}</div>
+          <span class="tag">${p.category}</span>
+          <h3>${p.name}</h3>
+          <p class="desc">${p.desc}</p>
+          <div class="product-bottom">
+            <span class="price">R$ ${p.price.toFixed(2)}</span>
+            <button class="btn-primary small" onclick="addToCart(${p.id})">Adicionar</button>
+          </div>
+        </div>
+      `).join('');
+    });
+  </script>
+</body>
+</html>
