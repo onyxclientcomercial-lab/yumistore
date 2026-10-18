@@ -5,26 +5,35 @@
   <title>Entrar — YumiStore</title>
   <link rel="stylesheet" href="style.css">
 </head>
-<body class="auth-body">
+<body class="bg-grid">
   <div class="auth-card">
-    <a href="index.html" class="logo">🌸 Yumi<span>Store</span></a>
-    <h2>Entrar na sua conta</h2>
-    <form id="loginForm">
-      <label>E-mail<input type="email" name="email" required placeholder="seu@email.com"></label>
-      <label>Senha<input type="password" name="password" required placeholder="••••••••"></label>
-      <button type="submit" class="btn-primary full">Entrar</button>
-      <p class="error" id="errorMsg"></p>
+    <h1 class="logo" style="justify-content:center; margin-bottom: 20px;">🌸 Yumi<span>Store</span></h1>
+    <h2>Entrar na conta</h2>
+    <form id="loginForm" style="margin-top: 20px;">
+      <input type="email" id="email" placeholder="E-mail" required>
+      <input type="password" id="password" placeholder="Senha" required>
+      <button type="submit" class="btn-primary">Entrar</button>
+      <p id="errorMsg" style="color: #ef4444; margin-top: 10px; font-size: 0.9rem;"></p>
     </form>
-    <p class="auth-footer">Não tem conta? <a href="register.html">Cadastre-se</a></p>
+    <p style="margin-top: 20px; font-size: 0.9rem; color: var(--text-muted);">
+      Não tem conta? <a href="register.html" style="color: var(--purple);">Cadastre-se</a>
+    </p>
   </div>
+
   <script src="app.js"></script>
   <script>
     document.getElementById('loginForm').addEventListener('submit', (e) => {
       e.preventDefault();
-      const body = Object.fromEntries(new FormData(e.target));
-      const res = login(body.email, body.password);
-      if (res.success) window.location.href = 'dashboard.html';
-      else document.getElementById('errorMsg').textContent = res.error;
+      const email = document.getElementById('email').value;
+      const pass = document.getElementById('password').value;
+      
+      const res = login(email, pass);
+      if (res.success) {
+        if (res.role === 'admin') window.location.href = 'admin.html';
+        else window.location.href = 'dashboard.html';
+      } else {
+        document.getElementById('errorMsg').innerText = res.error;
+      }
     });
   </script>
 </body>
