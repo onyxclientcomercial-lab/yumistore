@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <title>Ticket — YumiStore</title>
-  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body class="auth-body wide-body">
   <div class="dashboard-card">
-    <a href="/" class="logo">🌸 Yumi<span>Store</span></a>
+    <a href="index.html" class="logo">🌸 Yumi<span>Store</span></a>
     <div class="ticket-head">
       <h2 id="subject">Carregando...</h2>
       <span id="statusBadge" class="ticket-status">...</span>
@@ -22,48 +22,44 @@
     </form>
 
     <div class="dashboard-actions" style="margin-top:16px;">
-      <a href="/dashboard" class="btn-outline">Meu painel</a>
-      <a href="/support" class="btn-primary">Abrir outro ticket</a>
+      <a href="dashboard.html" class="btn-outline">Meu painel</a>
+      <a href="support.html" class="btn-primary">Abrir outro ticket</a>
     </div>
   </div>
 
+  <script src="app.js"></script>
   <script>
+    if (!requireLogin()) throw new Error('redirect');
     const id = new URLSearchParams(location.search).get('id');
-    if (!id) window.location.href = '/support';
+    const user = currentUser();
 
-    async function load() {
-      const r = await fetch('/api/tickets/' + id);
-      if (r.status === 401) return window.location.href = '/login';
-      if (!r.ok) return alert('Ticket não encontrado');
-      const t = await r.json();
+    function render() {
+      const t = getTickets().find(x => x.id === id && x.userId === user.id);
+      if (!t) { alert('Ticket não encontrado'); window.location.href = 'dashboard.html'; return; }
       document.getElementById('subject').textContent = t.subject;
       document.getElementById('meta').textContent = 'Aberto em ' + new Date(t.createdAt).toLocaleString('pt-BR');
-      document.getElementById('statusBadge').textContent = t.status;
-      document.getElementById('statusBadge').className = 'ticket-status ' + (t.status === 'Resolvido' ? 'ok' : '');
+      const badge = document.getElementById('statusBadge');
+      badge.textContent = t.status;
+      badge.className = 'ticket-status ' + (t.status === 'Resolvido' ? 'ok' : '');
 
-      document.getElementById('messages').innerHTML = t.messages.map(m => `
+      const box = document.getElementById('messages');
+      box.innerHTML = t.messages.map(m => `
         <div class="chat-msg ${m.from === 'user' ? 'mine' : 'support'}">
           <div class="small muted">${m.from === 'user' ? 'Você' : 'Suporte'} • ${new Date(m.at).toLocaleString('pt-BR')}</div>
           <div>${escapeHtml(m.text)}</div>
-        </div>
-      `).join('');
-      document.getElementById('messages').scrollTop = 99999;
+        </div>`).join('');
+      box.scrollTop = box.scrollHeight;
     }
 
-    function escapeHtml(s) {
-      return s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-    }
-
-    document.getElementById('replyForm').addEventListener('submit', async (e) => {
+    document.getElementById('replyForm').addEventListener('submit', (e) => {
       e.preventDefault();
-      const body = Object.fromEntries(new FormData(e.target));
-      const res = await fetch('/api/tickets/' + id + '/reply', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-      const data = await res.json();
-      if (data.success) { e.target.reset(); load(); }
-      else alert(data.error);
+      const msg = e.target.message.value;
+      const res = replyTicket(id, msg);
+      if (res.success) { e.target.reset(); render(); }
+      else alert(res.error);
     });
 
-    load();
+    render();
   </script>
 </body>
 </html>
