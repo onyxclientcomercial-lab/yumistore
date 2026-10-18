@@ -13,14 +13,20 @@
     </div>
   </header>
 
-  <div style="max-width:1200px; margin:40px auto; padding:0 20px;">
-    <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom:10px;">Início > <strong>Carrinho</strong></p>
-    <h1 style="margin-bottom:10px;">Carrinhos de compras</h1>
-    <p style="color:var(--text-muted); margin-bottom:30px;">Nesta página, você encontra os produtos adicionados ao seu carrinho.</p>
+  <div class="cart-page-container">
+    <p class="breadcrumb">Início > <strong style="color:white;">Carrinho</strong></p>
+    <h1 style="margin-bottom:5px;">Carrinhos de compras</h1>
+    <p style="color:var(--text-muted); font-size:0.95rem; margin-bottom:30px;">Nesta página, você encontra os produtos adicionados ao seu carrinho.</p>
 
-    <div class="cart-container" style="margin:0; padding:0;">
-      <div class="cart-items" id="cartItemsContainer"></div>
-      <div class="cart-summary" id="cartSummary"></div>
+    <div class="cart-layout">
+      <!-- Lado Esquerdo (Onde fica o vazio ou os itens) -->
+      <div class="cart-box" id="cartItemsContainer"></div>
+      
+      <!-- Lado Direito (Resumo) -->
+      <div class="cart-summary-box">
+        <h3 style="margin-bottom:15px;">Resumo da compra</h3>
+        <div id="cartSummaryBox"></div>
+      </div>
     </div>
   </div>
 
