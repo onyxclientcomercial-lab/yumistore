@@ -2,93 +2,105 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>YumiStore — Sua Loja Minecraft</title>
+  <title>YumiStore</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body class="bg-grid">
-  
+
+  <!-- HEADER -->
   <header>
     <a href="index.html" class="logo">🌸 Yumi<span>Store</span></a>
-    
-    <div class="search-bar">
-      <span id="icon-search"></span>
-      <input type="text" placeholder="Buscar produtos...">
-    </div>
-
     <div class="nav-actions">
-      <a href="#" class="icon-btn" id="icon-discord"></a>
-      <a href="#" class="icon-btn" id="icon-cart"></a>
-      <a href="login.html" class="btn-entrar">
-        <span id="icon-user"></span> Entrar
-      </a>
+      <a href="cart.html" class="btn-outline">🛒 Carrinho</a>
+      <a href="login.html" id="headerAuthBtn" class="btn-primary">Entrar</a>
     </div>
   </header>
 
-  <section class="hero">
+  <!-- VITRINE -->
+  <div class="hero">
     <div class="hero-text">
       <h1>Bem Vindo(a)<br><span>YumiStore</span></h1>
-      <p>A YumiStore é sua loja de confiança em serviços e produtos relacionados a Minecraft. Preços acessíveis, entrega rápida e suporte sempre disponível. Explore e aproveite!</p>
-      <button class="btn-suporte" id="icon-chat">Suporte</button>
+      <p>A sua loja de confiança em produtos Minecraft.</p>
     </div>
-    <div class="hero-grid">
-      <img src="https://images.unsplash.com/photo-1607853202273-797f1c22a38e?auto=format&fit=crop&w=300&q=80" class="hero-img">
-      <img src="https://images.unsplash.com/photo-1607513746994-51f730a44832?auto=format&fit=crop&w=300&q=80" class="hero-img">
-      <img src="https://images.unsplash.com/photo-1627856014759-6a4d9b7a8a9b?auto=format&fit=crop&w=300&q=80" class="hero-img">
-      <img src="https://images.unsplash.com/photo-1607853202273-797f1c22a38e?auto=format&fit=crop&w=300&q=80" class="hero-img">
-      <img src="https://images.unsplash.com/photo-1607513746994-51f730a44832?auto=format&fit=crop&w=300&q=80" class="hero-img">
-      <img src="https://images.unsplash.com/photo-1627856014759-6a4d9b7a8a9b?auto=format&fit=crop&w=300&q=80" class="hero-img">
-    </div>
-  </section>
+  </div>
+  <div class="products-grid" id="productsGrid"></div>
 
-  <section class="products-section">
-    <h2 class="section-title">Destaques</h2>
-    <div class="products-grid" id="productsGrid"></div>
-  </section>
+  <!-- BOTÃO FLUTUANTE DO ADM (Só aparece se estiver logado como ADM) -->
+  <button id="open-adm-btn" onclick="openAdm()">
+    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+  </button>
 
-  <section class="reviews-section">
-    <h2 class="section-title">Avaliações de Clientes</h2>
-    <div class="reviews-carousel">
-      <div class="review-card">
-        <div class="review-header">
-          <div class="avatar">H</div>
-          <div>
-            <strong>Helena Ramos</strong>
-            <div class="stars">★★★★★</div>
-          </div>
-        </div>
-        <p>"Melhor loja de Minecraft, suporte excelente."</p>
-        <span class="time">há 12 min</span>
-      </div>
-      <div class="review-card">
-        <div class="review-header">
-          <div class="avatar">L</div>
-          <div>
-            <strong>Lucas Mendes</strong>
-            <div class="stars">★★★★★</div>
-          </div>
-        </div>
-        <p>"Empresa ótima, sempre entregando produtos com excelente suporte."</p>
-        <span class="time">há 18 min</span>
-      </div>
-      <div class="review-card">
-        <div class="review-header">
-          <div class="avatar">B</div>
-          <div>
-            <strong>Beatriz Costa</strong>
-            <div class="stars">★★★★★</div>
-          </div>
-        </div>
-        <p>"Comprei Java + Bedrock e veio tudo certinho."</p>
-        <span class="time">há 27 min</span>
+  <!-- PAINEL ADM FLUTUANTE (ESTILO ZENDESK) -->
+  <div id="floating-adm">
+    <div class="adm-header">
+      <span>YumiStore Adm</span>
+      <div>
+        <button onclick="expandAdm()" title="Tela Cheia" style="margin-right:10px;">⛶</button>
+        <button onclick="closeAdm()">✕</button>
       </div>
     </div>
-  </section>
+    
+    <div class="adm-body">
+      <div class="adm-nav">
+        <button class="active" onclick="switchAdmTab('tab-orders', this)">Pendentes</button>
+        <button onclick="switchAdmTab('tab-products', this)">Produtos</button>
+        <button onclick="switchAdmTab('tab-coupons', this)">Cupons</button>
+        <button onclick="switchAdmTab('tab-users', this)">Equipe</button>
+      </div>
 
-  <!-- SUPORTE FIXO NO CANTO INFERIOR ESQUERDO -->
-  <a href="#" class="floating-support">
-    <svg width="20" height="20" fill="none" stroke="#8b5cf6" stroke-width="2" viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
-    <span>Suporte</span>
-  </a>
+      <!-- ABA: PEDIDOS PENDENTES -->
+      <div id="tab-orders" class="adm-section active">
+        <h3 style="color:#333; margin-bottom:10px;">Vendas / Pendentes</h3>
+        <div id="adm-orders-list"></div>
+      </div>
+
+      <!-- ABA: NOVO PRODUTO -->
+      <div id="tab-products" class="adm-section">
+        <h3 style="color:#333; margin-bottom:10px;">Criar Produto</h3>
+        <form onsubmit="createProduct(event)">
+          <div class="input-group"><label>Título</label><input type="text" id="p-title" required></div>
+          <div class="input-group"><label>URL da Imagem</label><input type="url" id="p-image" required></div>
+          <div style="display:flex; gap:10px;">
+            <div class="input-group" style="flex:1;"><label>Preço (R$)</label><input type="number" step="0.01" id="p-price" required></div>
+            <div class="input-group" style="flex:1;"><label>Desconto (%)</label><input type="number" id="p-discount"></div>
+          </div>
+          <button type="submit" class="btn-primary" style="width:100%; background:var(--pink);">Criar Produto</button>
+        </form>
+        <hr style="margin:20px 0; border:0; border-top:1px solid #eee;">
+        <h3 style="color:#333; margin-bottom:10px;">Produtos Cadastrados</h3>
+        <div id="adm-product-list"></div>
+      </div>
+
+      <!-- ABA: CUPONS -->
+      <div id="tab-coupons" class="adm-section">
+        <h3 style="color:#333; margin-bottom:10px;">Criar Cupom</h3>
+        <p style="font-size:0.8rem; color:#666; margin-bottom:10px;">Regra: O nome DEVE terminar com o valor do desconto. Ex: <b>yumi10</b> ou <b>promo20</b>.</p>
+        <form onsubmit="createCoupon(event)">
+          <div class="input-group"><label>Nome do Cupom</label><input type="text" id="c-code" placeholder="Ex: yumi" required></div>
+          <div class="input-group">
+            <label>Tipo</label>
+            <select id="c-type"><option value="percent">Porcentagem (%)</option></select>
+          </div>
+          <div class="input-group"><label>Valor (Apenas números)</label><input type="number" id="c-value" placeholder="Ex: 10" required></div>
+          <button type="submit" class="btn-primary" style="width:100%; background:var(--pink);">Criar Cupom</button>
+        </form>
+      </div>
+
+      <!-- ABA: EQUIPE -->
+      <div id="tab-users" class="adm-section">
+        <h3 style="color:#333; margin-bottom:10px;">Adicionar Membro</h3>
+        <form onsubmit="alert('Funcionalidade pronta para integração Backend!'); event.preventDefault();">
+          <div class="input-group"><label>E-mail</label><input type="email" placeholder="membro@email.com" required></div>
+          <div class="input-group"><label>Senha</label><input type="password" required></div>
+          <button type="submit" class="btn-primary" style="width:100%; background:var(--pink);">Adicionar</button>
+        </form>
+      </div>
+
+    </div>
+    <div class="adm-footer">
+      <a href="#" onclick="logout()" style="color:var(--red); font-size:0.9rem;">Sair da conta ADM</a>
+    </div>
+  </div>
 
   <script src="app.js"></script>
 </body>
