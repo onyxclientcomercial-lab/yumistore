@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Painel ADM — YumiStore</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .admin-layout { display: flex; min-height: 100vh; }
+    .sidebar { width: 250px; background: var(--bg-panel); border-right: 1px solid var(--border); padding: 20px; }
+    .main-content { flex: 1; padding: 40px; position: relative; }
+    .card-form { background: var(--bg-card); padding: 20px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 30px; }
+  </style>
+</head>
+<body class="bg-grid">
+  <div class="admin-layout">
+    <div class="sidebar">
+      <h2 class="logo" style="margin-bottom: 40px;">🌸 Yumi<span>ADM</span></h2>
+      <nav style="display: flex; flex-direction: column; gap: 10px;">
+        <a href="#" style="color: var(--purple); font-weight: bold;">Gerenciar Produtos</a>
+        <a href="index.html">Voltar para a Loja</a>
+        <a href="#" onclick="logout()" style="color: #ef4444; margin-top: 50px;">Sair do Painel</a>
+      </nav>
+    </div>
+
+    <div class="main-content">
+      <div class="status-online">
+        <div class="dot"></div> <span id="onlineCount">0</span> pessoas online
+      </div>
+
+      <h1 style="margin-bottom: 30px;">Gerenciamento da Loja</h1>
+
+      <!-- CRIAR PRODUTO -->
+      <div class="card-form">
+        <h3 style="margin-bottom: 20px;">Adicionar Novo Produto</h3>
+        <form id="form-product" onsubmit="createProduct(event)">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+            <div class="input-group"><label>Título do Produto</label><input type="text" id="adm-title" required></div>
+            <div class="input-group"><label>URL da Imagem (Banner/Logo)</label><input type="url" id="adm-image" required></div>
+            <div class="input-group"><label>Preço Atual (R$)</label><input type="number" step="0.01" id="adm-price" required></div>
+            <div class="input-group"><label>Preço Antigo (R$)</label><input type="number" step="0.01" id="adm-oldPrice" required></div>
+            <div class="input-group"><label>Desconto (%)</label><input type="number" id="adm-discount" required></div>
+          </div>
+          <div class="input-group"><label>Descrição</label><textarea id="adm-desc" rows="3" required></textarea></div>
+          <button type="submit" class="btn-primary" style="width: 200px;">Criar Produto</button>
+        </form>
+      </div>
+
+      <!-- LISTA DE PRODUTOS -->
+      <div class="card-form">
+        <h3 style="margin-bottom: 20px;">Produtos Cadastrados</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Imagem</th>
+              <th>Título</th>
+              <th>Preço</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="admin-products-body">
+            <!-- Preenchido via JS -->
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    // Proteção de rota
+    const session = getSession();
+    if (!session || session.role !== 'admin') {
+      alert('Acesso negado. Faça login como administrador.');
+      window.location.href = 'login.html';
+    }
+  </script>
+</body>
+</html>
