@@ -7,4 +7,63 @@
 </head>
 <body class="auth-body wide-body">
   <div class="dashboard-card">
-    <a href="/" class="
+    <a href="/" class="logo">🌸 Yumi<span>Store</span></a>
+    <div class="ticket-head">
+      <h2 id="subject">Carregando...</h2>
+      <span id="statusBadge" class="ticket-status">...</span>
+    </div>
+    <p class="small muted" id="meta"></p>
+
+    <div id="messages" class="chat-box"></div>
+
+    <form id="replyForm" style="margin-top:16px;">
+      <label>Responder<textarea name="message" required rows="3" placeholder="Escreva sua mensagem..."></textarea></label>
+      <button type="submit" class="btn-primary full">Enviar resposta</button>
+    </form>
+
+    <div class="dashboard-actions" style="margin-top:16px;">
+      <a href="/dashboard" class="btn-outline">Meu painel</a>
+      <a href="/support" class="btn-primary">Abrir outro ticket</a>
+    </div>
+  </div>
+
+  <script>
+    const id = new URLSearchParams(location.search).get('id');
+    if (!id) window.location.href = '/support';
+
+    async function load() {
+      const r = await fetch('/api/tickets/' + id);
+      if (r.status === 401) return window.location.href = '/login';
+      if (!r.ok) return alert('Ticket não encontrado');
+      const t = await r.json();
+      document.getElementById('subject').textContent = t.subject;
+      document.getElementById('meta').textContent = 'Aberto em ' + new Date(t.createdAt).toLocaleString('pt-BR');
+      document.getElementById('statusBadge').textContent = t.status;
+      document.getElementById('statusBadge').className = 'ticket-status ' + (t.status === 'Resolvido' ? 'ok' : '');
+
+      document.getElementById('messages').innerHTML = t.messages.map(m => `
+        <div class="chat-msg ${m.from === 'user' ? 'mine' : 'support'}">
+          <div class="small muted">${m.from === 'user' ? 'Você' : 'Suporte'} • ${new Date(m.at).toLocaleString('pt-BR')}</div>
+          <div>${escapeHtml(m.text)}</div>
+        </div>
+      `).join('');
+      document.getElementById('messages').scrollTop = 99999;
+    }
+
+    function escapeHtml(s) {
+      return s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+
+    document.getElementById('replyForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const body = Object.fromEntries(new FormData(e.target));
+      const res = await fetch('/api/tickets/' + id + '/reply', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      const data = await res.json();
+      if (data.success) { e.target.reset(); load(); }
+      else alert(data.error);
+    });
+
+    load();
+  </script>
+</body>
+</html>
