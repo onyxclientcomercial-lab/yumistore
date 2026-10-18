@@ -5,78 +5,25 @@
   <title>Carrinho — YumiStore</title>
   <link rel="stylesheet" href="style.css">
 </head>
-<body class="auth-body wide-body">
-  <div class="dashboard-card">
+<body class="bg-grid">
+  <header>
     <a href="index.html" class="logo">🌸 Yumi<span>Store</span></a>
-    <h2 style="text-align:center; margin-bottom:24px;">🛒 Seu Carrinho</h2>
-    <div id="cartItems"></div>
-    <div class="cart-total"><span>Total:</span> <strong id="totalPrice">R$ 0,00</strong></div>
-    <div class="dashboard-actions">
-      <a href="index.html" class="btn-outline">Continuar comprando</a>
-      <button id="checkoutBtn" class="btn-primary">Finalizar Compra</button>
+    <div class="nav-actions">
+      <a href="index.html" class="btn-outline">Voltar à Loja</a>
     </div>
-    <p id="msg" class="error"></p>
+  </header>
+
+  <div style="max-width:1200px; margin:40px auto; padding:0 20px;">
+    <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom:10px;">Início > <strong>Carrinho</strong></p>
+    <h1 style="margin-bottom:10px;">Carrinhos de compras</h1>
+    <p style="color:var(--text-muted); margin-bottom:30px;">Nesta página, você encontra os produtos adicionados ao seu carrinho.</p>
+
+    <div class="cart-container" style="margin:0; padding:0;">
+      <div class="cart-items" id="cartItemsContainer"></div>
+      <div class="cart-summary" id="cartSummary"></div>
+    </div>
   </div>
 
   <script src="app.js"></script>
-  <script>
-    function render() {
-      const cart = getCart();
-      const wrap = document.getElementById('cartItems');
-      if (!cart.length) {
-        wrap.innerHTML = '<p class="empty">Seu carrinho está vazio.</p>';
-        document.getElementById('totalPrice').textContent = 'R$ 0,00';
-        return;
-      }
-      let total = 0;
-      wrap.innerHTML = cart.map(it => {
-        const p = PRODUCTS.find(x => x.id === it.id);
-        if (!p) return '';
-        total += p.price * it.qty;
-        return `
-          <div class="cart-row">
-            <div class="cart-icon">${p.icon}</div>
-            <div class="cart-info">
-              <strong>${p.name}</strong>
-              <div class="small muted">R$ ${p.price.toFixed(2)} cada</div>
-            </div>
-            <div class="qty-controls">
-              <button onclick="changeQty(${p.id},-1)">−</button>
-              <span>${it.qty}</span>
-              <button onclick="changeQty(${p.id},1)">+</button>
-            </div>
-            <div class="cart-sub">R$ ${(p.price * it.qty).toFixed(2)}</div>
-            <button class="remove-btn" onclick="removeItem(${p.id})">✖</button>
-          </div>`;
-      }).join('');
-      document.getElementById('totalPrice').textContent = 'R$ ' + total.toFixed(2);
-    }
-
-    function changeQty(id, delta) {
-      let cart = getCart();
-      const it = cart.find(i => i.id === id);
-      if (!it) return;
-      it.qty += delta;
-      if (it.qty <= 0) cart = cart.filter(i => i.id !== id);
-      if (it.qty > 10) it.qty = 10;
-      saveCart(cart); render();
-    }
-    function removeItem(id) { saveCart(getCart().filter(i => i.id !== id)); render(); }
-
-    document.getElementById('checkoutBtn').addEventListener('click', () => {
-      const user = currentUser();
-      if (!user) { window.location.href = 'login.html'; return; }
-      const res = checkout(getCart());
-      if (res.success) {
-        alert('✅ Compra realizada!\nPedido: ' + res.order.id);
-        window.location.href = 'dashboard.html';
-      } else {
-        document.getElementById('msg').textContent = res.error;
-        if (res.needTopup) setTimeout(() => window.location.href = 'dashboard.html', 1800);
-      }
-    });
-
-    render();
-  </script>
 </body>
 </html>
