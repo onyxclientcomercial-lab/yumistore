@@ -3,31 +3,25 @@
 <head>
   <meta charset="UTF-8">
   <title>Carrinho — YumiStore</title>
-  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body class="auth-body wide-body">
   <div class="dashboard-card">
-    <a href="/" class="logo">🌸 Yumi<span>Store</span></a>
+    <a href="index.html" class="logo">🌸 Yumi<span>Store</span></a>
     <h2 style="text-align:center; margin-bottom:24px;">🛒 Seu Carrinho</h2>
     <div id="cartItems"></div>
     <div class="cart-total"><span>Total:</span> <strong id="totalPrice">R$ 0,00</strong></div>
     <div class="dashboard-actions">
-      <a href="/" class="btn-outline">Continuar comprando</a>
+      <a href="index.html" class="btn-outline">Continuar comprando</a>
       <button id="checkoutBtn" class="btn-primary">Finalizar Compra</button>
     </div>
     <p id="msg" class="error"></p>
   </div>
 
+  <script src="app.js"></script>
   <script>
-    let cart = JSON.parse(localStorage.getItem('yumi_cart') || '[]');
-    let products = [];
-
-    async function load() {
-      products = await (await fetch('/api/products')).json();
-      render();
-    }
-
     function render() {
+      const cart = getCart();
       const wrap = document.getElementById('cartItems');
       if (!cart.length) {
         wrap.innerHTML = '<p class="empty">Seu carrinho está vazio.</p>';
@@ -36,7 +30,7 @@
       }
       let total = 0;
       wrap.innerHTML = cart.map(it => {
-        const p = products.find(x => x.id === it.id);
+        const p = PRODUCTS.find(x => x.id === it.id);
         if (!p) return '';
         total += p.price * it.qty;
         return `
@@ -47,9 +41,9 @@
               <div class="small muted">R$ ${p.price.toFixed(2)} cada</div>
             </div>
             <div class="qty-controls">
-              <button onclick="changeQty(${p.id}, -1)">−</button>
+              <button onclick="changeQty(${p.id},-1)">−</button>
               <span>${it.qty}</span>
-              <button onclick="changeQty(${p.id}, 1)">+</button>
+              <button onclick="changeQty(${p.id},1)">+</button>
             </div>
             <div class="cart-sub">R$ ${(p.price * it.qty).toFixed(2)}</div>
             <button class="remove-btn" onclick="removeItem(${p.id})">✖</button>
@@ -59,37 +53,30 @@
     }
 
     function changeQty(id, delta) {
+      let cart = getCart();
       const it = cart.find(i => i.id === id);
       if (!it) return;
       it.qty += delta;
       if (it.qty <= 0) cart = cart.filter(i => i.id !== id);
       if (it.qty > 10) it.qty = 10;
-      save();
+      saveCart(cart); render();
     }
-    function removeItem(id) { cart = cart.filter(i => i.id !== id); save(); }
-    function save() { localStorage.setItem('yumi_cart', JSON.stringify(cart)); render(); }
+    function removeItem(id) { saveCart(getCart().filter(i => i.id !== id)); render(); }
 
-    document.getElementById('checkoutBtn').addEventListener('click', async () => {
-      if (!cart.length) return alert('Carrinho vazio!');
-      const res = await fetch('/api/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ items: cart })
-      });
-      if (res.status === 401) return window.location.href = '/login';
-      const data = await res.json();
-      if (data.success) {
-        alert('✅ Compra realizada com sucesso!\nPedido: ' + data.order.id);
-        localStorage.removeItem('yumi_cart');
-        cart = [];
-        window.location.href = '/dashboard';
+    document.getElementById('checkoutBtn').addEventListener('click', () => {
+      const user = currentUser();
+      if (!user) { window.location.href = 'login.html'; return; }
+      const res = checkout(getCart());
+      if (res.success) {
+        alert('✅ Compra realizada!\nPedido: ' + res.order.id);
+        window.location.href = 'dashboard.html';
       } else {
-        document.getElementById('msg').textContent = data.error;
-        if (data.needTopup) setTimeout(() => window.location.href = '/dashboard', 2000);
+        document.getElementById('msg').textContent = res.error;
+        if (res.needTopup) setTimeout(() => window.location.href = 'dashboard.html', 1800);
       }
     });
 
-    load();
+    render();
   </script>
 </body>
 </html>
