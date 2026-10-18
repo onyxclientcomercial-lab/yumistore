@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Detalhes do Produto — YumiStore</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-grid">
+  <header>
+    <a href="index.html" class="logo">🌸 Yumi<span>Store</span></a>
+    <div class="nav-actions">
+      <a href="login.html" class="btn-entrar">Voltar / Entrar</a>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="product-page" id="productDetails">
+      <!-- Preenchido via JS -->
+    </div>
+
+    <div style="margin-top: 60px;">
+      <h2 class="section-title">Avaliações deste produto</h2>
+      <div id="productReviews" style="display: flex; flex-direction: column; gap: 10px;">
+        <!-- Preenchido via JS -->
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const productId = parseInt(urlParams.get('id'));
+    const products = DB.get('products');
+    const product = products.find(p => p.id === productId);
+
+    if (product) {
+      document.getElementById('productDetails').innerHTML = `
+        <div class="product-image">
+          <img src="${product.image}" alt="${product.title}">
+        </div>
+        <div class="product-info">
+          <h1>${product.title}</h1>
+          <div style="display:flex; gap:10px; align-items:center;">
+            <span class="price-old">R$ ${product.oldPrice.toFixed(2)}</span>
+            <span class="discount">${product.discount}% OFF</span>
+          </div>
+          <div class="price">R$ ${product.price.toFixed(2)}</div>
+          <p class="desc">${product.desc}</p>
+          <button class="btn-primary" style="max-width: 300px;" onclick="buyNow(${product.id})">Comprar Agora</button>
+          <button class="btn-suporte" style="margin-top:10px; width: 300px;" onclick="addToCart(${product.id})">Adicionar ao Carrinho</button>
+        </div>
+      `;
+
+      // Renderiza avaliações do produto
+      const revContainer = document.getElementById('productReviews');
+      if (product.reviews && product.reviews.length > 0) {
+        revContainer.innerHTML = product.reviews.map(r => `
+          <div class="review-card" style="min-width: 100%;">
+            <div class="review-header">
+              <div class="avatar">${r.author[0]}</div>
+              <div>
+                <strong>${r.author}</strong>
+                <div class="stars">★★★★★</div>
+              </div>
+            </div>
+            <p>"${r.text}"</p>
+          </div>
+        `).join('');
+      } else {
+        revContainer.innerHTML = '<p style="color:var(--text-muted);">Nenhuma avaliação ainda. Seja o primeiro!</p>';
+      }
+    } else {
+      document.getElementById('productDetails').innerHTML = '<h2>Produto não encontrado.</h2>';
+    }
+  </script>
+</body>
+</html>
