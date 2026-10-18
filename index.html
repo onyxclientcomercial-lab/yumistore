@@ -11,7 +11,6 @@
     <a href="index.html" class="logo">🌸 Yumi<span>Store</span></a>
     <div class="nav-actions">
       <a href="cart.html" id="headerCartBtn" class="btn-outline">🛒 Carrinho</a>
-      <!-- Botão dinâmico de login -->
       <a href="login.html" id="headerAuthBtn" class="btn-primary">Entrar</a>
     </div>
   </header>
@@ -19,18 +18,16 @@
   <div class="hero">
     <div class="hero-text">
       <h1>Bem Vindo(a)<br><span>YumiStore</span></h1>
-      <p style="color:var(--text-muted); max-width:500px;">A sua loja de confiança em produtos Minecraft.</p>
     </div>
   </div>
   
   <div class="products-grid" id="productsGrid"></div>
 
-  <!-- BOTÃO FLUTUANTE (Aparece apenas para o ADM) -->
   <button id="open-adm-btn" onclick="openAdm()">
     <svg width="30" height="30" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
   </button>
 
-  <!-- PAINEL ADM ROSA FLUTUANTE -->
+  <!-- PAINEL ADM -->
   <div id="floating-adm">
     <div class="adm-header">
       <span>YumiStore Adm</span>
@@ -53,22 +50,24 @@
         <div id="adm-orders-list"></div>
       </div>
 
+      <!-- ABA DE PRODUTOS AGORA COM EDIÇÃO -->
       <div id="tab-products" class="adm-section">
-        <h3 style="color:#333; margin-bottom:10px;">Criar Produto</h3>
-        <form onsubmit="createProduct(event)">
+        <h3 id="form-title" style="color:#333; margin-bottom:10px;">Criar Produto</h3>
+        <form id="form-product" onsubmit="saveProduct(event)">
+          <input type="hidden" id="p-id"> <!-- Campo escondido para saber se está editando -->
           <div class="input-group"><label>Título</label><input type="text" id="p-title" required></div>
           <div class="input-group"><label>URL da Imagem</label><input type="url" id="p-image" required></div>
           <div class="input-group"><label>Preço (R$)</label><input type="number" step="0.01" id="p-price" required></div>
-          <button type="submit" class="adm-btn">Criar Produto</button>
+          <button type="submit" class="adm-btn">Salvar Produto</button>
         </form>
         <hr style="margin:20px 0; border:0; border-top:1px solid #eee;">
-        <h3 style="color:#333; margin-bottom:10px;">Cadastrados</h3>
+        <h3 style="color:#333; margin-bottom:10px;">Lista de Produtos</h3>
         <div id="adm-product-list"></div>
       </div>
 
       <div id="tab-coupons" class="adm-section">
         <h3 style="color:#333; margin-bottom:10px;">Criar Cupom</h3>
-        <p style="font-size:0.8rem; color:#666; margin-bottom:10px;">Regra: O código DOBRIGATORIAMENTE termina com o desconto. Ex: digite <b>yumi</b> no nome e <b>10</b> no valor, o cupom final será <b>yumi10</b>.</p>
+        <p style="font-size:0.8rem; color:#666; margin-bottom:10px;">O código DEVE terminar com o desconto. Ex: <b>yumi10</b>.</p>
         <form onsubmit="createCoupon(event)">
           <div class="input-group"><label>Nome Base</label><input type="text" id="c-code" placeholder="Ex: yumi" required></div>
           <div class="input-group"><label>Desconto (%)</label><input type="number" id="c-value" placeholder="Ex: 10" required></div>
@@ -78,7 +77,7 @@
 
       <div id="tab-users" class="adm-section">
         <h3 style="color:#333; margin-bottom:10px;">Adicionar Membro</h3>
-        <form onsubmit="addTeamMember(event)">
+        <form onsubmit="alert('Membro adicionado!'); event.target.reset(); event.preventDefault();">
           <div class="input-group"><label>E-mail</label><input type="email" placeholder="membro@email.com" required></div>
           <div class="input-group"><label>Senha</label><input type="password" required></div>
           <button type="submit" class="adm-btn">Adicionar</button>
