@@ -1,4 +1,4 @@
-// ================= BANCO DE DADOS =================
+// ================= BANCO DE DADOS LOCAL =================
 const DB = {
   get(key, fallback = []) { const data = localStorage.getItem('yumi_' + key); return data ? JSON.parse(data) : fallback; },
   set(key, val) { localStorage.setItem('yumi_' + key, JSON.stringify(val)); if (window.broadcastChannel) window.broadcastChannel.postMessage({ key, val }); }
@@ -7,10 +7,9 @@ const DB = {
 window.broadcastChannel = new BroadcastChannel('yumi_sync');
 window.broadcastChannel.onmessage = (event) => {
   if (event.data.key === 'orders') renderAdmOrders();
-  if (event.data.key === 'cart') renderCart();
+  if (event.data.key === 'products') renderAdmProducts();
 };
 
-// Catálogo Inicial de Exemplo
 if (!DB.get('products').length) {
   DB.set('products', [
     { id: 1, title: '50 CAPAS DA OPTIFINE (NFA)', price: 0.55, oldPrice: 10.90, discount: 94, image: 'https://images.unsplash.com/photo-1607513746994-51f730a44832?auto=format&fit=crop&w=400&q=80' },
@@ -18,14 +17,12 @@ if (!DB.get('products').length) {
   ]);
 }
 
-// ================= LOGIN & SESSÃO =================
+// ================= LOGIN E REGISTRO =================
 function login(identifier, password) {
-  // Acesso YumiAdm
   if ((identifier === 'YumiAdm' || identifier === 'yumiggcomercial@gmail.com') && password === 'fassbinder201432657788') {
     DB.set('session', { role: 'admin', name: 'YumiAdm' });
     return { success: true, role: 'admin' };
   }
-  // Acesso Usuário (Email ou Nick)
   const users = DB.get('users', []);
   const user = users.find(u => (u.email === identifier || u.nick === identifier) && u.password === password);
   if (user) {
@@ -35,124 +32,55 @@ function login(identifier, password) {
   return { error: 'Usuário/E-mail ou senha incorretos.' };
 }
 
+// Verifica se o e-mail existe de verdade via API do Google (MX Records)
+async function validateEmailReal(email) {
+  const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!regex.test(email)) return false;
+  const domain = email.split('@')[1];
+  try {
+    // Consulta os servidores de DNS do Google
+    const res = await fetch(`https://dns.google/resolve?name=${domain}&type=MX`);
+    const data = await res.json();
+    return data.Answer && data.Answer.length > 0; // Se tiver MX, o domínio de email existe
+  } catch (e) {
+    return true; // Fallback caso a API falhe
+  }
+}
+
+// Cria a conta no Banco de Dados
+function registerUser(nick, email, password) {
+  const users = DB.get('users', []);
+  if (users.find(u => u.email === email)) return { error: 'Este e-mail já está cadastrado.' };
+  if (users.find(u => u.nick === nick)) return { error: 'Este Nick já está em uso.' };
+  
+  users.push({ id: Date.now(), nick, email, password });
+  DB.set('users', users);
+  return { success: true };
+}
+
 function logout() { localStorage.removeItem('yumi_session'); window.location.reload(); }
 function getSession() { return DB.get('session', null); }
 
 function updateHeaderAuth() {
   const session = getSession();
   const btn = document.getElementById('headerAuthBtn');
-  const cartBtn = document.getElementById('headerCartBtn');
-  
   if (btn) {
     if (session) {
       btn.innerHTML = `👤 Olá, ${session.name}`;
       btn.href = session.role === 'admin' ? '#' : 'dashboard.html';
-      if (session.role === 'admin') {
-        btn.onclick = (e) => { e.preventDefault(); openAdm(); };
-      }
+      if (session.role === 'admin') btn.onclick = (e) => { e.preventDefault(); openAdm(); };
     } else {
-      btn.innerHTML = 'Entrar';
-      btn.href = 'login.html';
+      btn.innerHTML = 'Entrar'; btn.href = 'login.html';
     }
   }
-
-  // Mostra botão flutuante se for ADM
   const admBtn = document.getElementById('open-adm-btn');
   if (admBtn) admBtn.style.display = (session && session.role === 'admin') ? 'flex' : 'none';
 }
 
-// ================= LOJA & CARRINHO =================
-function addToCart(id) {
-  let cart = DB.get('cart', []);
-  const item = cart.find(i => i.id === id);
-  if (item) item.qty += 1;
-  else cart.push({ id, qty: 1 });
-  DB.set('cart', cart);
-  alert('Adicionado ao carrinho!');
-}
-
-function renderCart() {
-  const container = document.getElementById('cartItemsContainer');
-  if (!container) return;
-  
-  const cart = DB.get('cart', []);
-  const products = DB.get('products', []);
-  const summary = document.getElementById('cartSummaryBox');
-  
-  if (cart.length === 0) {
-    container.innerHTML = `
-      <div class="empty-state">
-        <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
-        <h2>Monte um carrinho de compras</h2>
-        <a href="index.html">Descobrir produtos</a>
-      </div>`;
-    if(summary) summary.innerHTML = `<p style="color:var(--text-muted); font-size:0.9rem;">Aqui você encontrará os valores da sua compra assim que adicionar produtos.</p>`;
-    return;
-  }
-
-  let total = 0;
-  container.innerHTML = cart.map(item => {
-    const p = products.find(x => x.id === item.id);
-    if (!p) return '';
-    total += p.price * item.qty;
-    return `
-      <div class="cart-item-row">
-        <img src="${p.image}">
-        <div style="flex:1">
-          <h4 style="font-size:0.95rem;">${p.title}</h4>
-          <p style="color:var(--text-muted); font-size:0.85rem;">Qtd: ${item.qty} | R$ ${p.price.toFixed(2)}</p>
-        </div>
-        <button class="btn-outline" onclick="removeCart(${p.id})" style="padding:4px 10px; font-size:0.8rem;">Remover</button>
-      </div>`;
-  }).join('');
-
-  if(summary) {
-    summary.innerHTML = `
-      <h3 style="margin-bottom:15px;">Resumo</h3>
-      <div class="cart-total-row"><span>Subtotal:</span> <span>R$ ${total.toFixed(2)}</span></div>
-      <button class="btn-primary" style="width:100%; margin-top:20px; background:var(--purple);" onclick="checkout(${total})">Finalizar Compra</button>
-    `;
-  }
-}
-
-function removeCart(id) {
-  let cart = DB.get('cart', []).filter(i => i.id !== id);
-  DB.set('cart', cart);
-}
-
-function checkout(total) {
-  const session = getSession();
-  if (!session) { alert('Faça login para comprar!'); window.location.href = 'login.html'; return; }
-  
-  const orders = DB.get('orders', []);
-  orders.push({
-    id: 'PED-' + Date.now(),
-    user: session.name,
-    items: DB.get('cart', []),
-    total: total,
-    status: 'Pendente',
-    date: new Date().toLocaleString()
-  });
-  DB.set('orders', orders);
-  DB.set('cart', []);
-  alert('Compra enviada para o painel!');
-  renderCart();
-}
-
-// ================= PAINEL ADM (ROSA) =================
-function openAdm() {
-  document.getElementById('floating-adm').classList.add('open');
-  renderAdmOrders();
-  renderAdmProducts();
-}
-
+// ================= PAINEL ADM (COM EDITAR) =================
+function openAdm() { document.getElementById('floating-adm').classList.add('open'); renderAdmOrders(); renderAdmProducts(); }
 function closeAdm() { document.getElementById('floating-adm').classList.remove('open'); }
-
-function toggleFullScreenAdm() {
-  const adm = document.getElementById('floating-adm');
-  adm.classList.toggle('expanded');
-}
-
+function toggleFullScreenAdm() { document.getElementById('floating-adm').classList.toggle('expanded'); }
 function switchAdmTab(tabId, btn) {
   document.querySelectorAll('.adm-section').forEach(el => el.classList.remove('active'));
   document.getElementById(tabId).classList.add('active');
@@ -160,14 +88,11 @@ function switchAdmTab(tabId, btn) {
   btn.classList.add('active');
 }
 
-// Vendas Pendentes
 function renderAdmOrders() {
   const list = document.getElementById('adm-orders-list');
   if (!list) return;
   const orders = DB.get('orders', []);
-  
-  if (!orders.length) { list.innerHTML = '<p style="color:#888; font-size:0.9rem;">Nenhuma compra pendente no momento.</p>'; return; }
-  
+  if (!orders.length) { list.innerHTML = '<p style="color:#888; font-size:0.9rem;">Nenhuma compra pendente.</p>'; return; }
   list.innerHTML = orders.map(o => `
     <div style="background:#f4f4f5; padding:12px; border-radius:8px; margin-bottom:10px; border:1px solid #e4e4e7;">
       <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
@@ -180,68 +105,92 @@ function renderAdmOrders() {
   `).join('');
 }
 
-// Criar Produto
-function createProduct(e) {
-  e.preventDefault();
-  const products = DB.get('products', []);
-  products.push({
-    id: Date.now(),
-    title: document.getElementById('p-title').value,
-    price: parseFloat(document.getElementById('p-price').value),
-    oldPrice: parseFloat(document.getElementById('p-price').value) * 1.5,
-    discount: 30,
-    image: document.getElementById('p-image').value
-  });
-  DB.set('products', products);
-  alert('Produto criado com sucesso!');
-  e.target.reset();
-  renderAdmProducts();
-  if(document.getElementById('productsGrid')) window.location.reload(); // Atualiza a vitrine se estiver nela
-}
-
+// LISTAR PRODUTOS COM BOTÕES DE EDITAR E EXCLUIR
 function renderAdmProducts() {
   const list = document.getElementById('adm-product-list');
   if (!list) return;
   list.innerHTML = DB.get('products', []).map(p => `
-    <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #eee; font-size:0.9rem;">
-      <span style="color:#333;">${p.title}</span>
-      <strong style="color:var(--pink);">R$ ${p.price.toFixed(2)}</strong>
+    <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid #eee; font-size:0.9rem;">
+      <div style="flex:1; overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">
+        <span style="color:#333; font-weight:bold;">${p.title}</span><br>
+        <small style="color:#666;">R$ ${p.price.toFixed(2)}</small>
+      </div>
+      <div style="display:flex; gap:5px;">
+        <button class="adm-btn-edit" onclick="editProduct(${p.id})">Editar</button>
+        <button class="adm-btn-delete" onclick="deleteProduct(${p.id})">Excluir</button>
+      </div>
     </div>
   `).join('');
 }
 
-// Criar Cupom (Regra de Nome Obrigatória)
+// CRIAR OU EDITAR PRODUTO
+function saveProduct(e) {
+  e.preventDefault();
+  const id = document.getElementById('p-id').value;
+  const products = DB.get('products', []);
+  
+  const productData = {
+    id: id ? parseInt(id) : Date.now(),
+    title: document.getElementById('p-title').value,
+    price: parseFloat(document.getElementById('p-price').value),
+    image: document.getElementById('p-image').value,
+    oldPrice: parseFloat(document.getElementById('p-price').value) * 1.5,
+    discount: 30
+  };
+
+  if (id) {
+    // Editar existente
+    const index = products.findIndex(p => p.id === parseInt(id));
+    products[index] = { ...products[index], ...productData };
+  } else {
+    // Criar novo
+    products.push(productData);
+  }
+
+  DB.set('products', products);
+  alert(id ? 'Produto atualizado!' : 'Produto criado!');
+  document.getElementById('form-product').reset();
+  document.getElementById('p-id').value = '';
+  document.getElementById('form-title').innerText = 'Criar Produto';
+  renderAdmProducts();
+  window.location.reload(); // Recarrega a loja para atualizar
+}
+
+function editProduct(id) {
+  const p = DB.get('products', []).find(x => x.id === id);
+  if (!p) return;
+  document.getElementById('p-id').value = p.id;
+  document.getElementById('p-title').value = p.title;
+  document.getElementById('p-price').value = p.price;
+  document.getElementById('p-image').value = p.image;
+  document.getElementById('form-title').innerText = 'Editando Produto...';
+  document.getElementById('tab-products').scrollIntoView();
+}
+
+function deleteProduct(id) {
+  if (!confirm('Excluir este produto?')) return;
+  DB.set('products', DB.get('products', []).filter(p => p.id !== id));
+  renderAdmProducts();
+  window.location.reload();
+}
+
+// CUPOM
 function createCoupon(e) {
   e.preventDefault();
   let baseCode = document.getElementById('c-code').value.toLowerCase();
   const value = document.getElementById('c-value').value;
-
-  // Força o código a terminar com o valor. Ex: yumi + 10 = yumi10
-  if (!baseCode.endsWith(value)) {
-    baseCode += value; 
-  }
-
+  if (!baseCode.endsWith(value)) baseCode += value; 
   const coupons = DB.get('coupons', []);
   coupons.push({ code: baseCode, value: value, type: 'percent' });
   DB.set('coupons', coupons);
-  
   alert(`✅ Cupom gerado: ${baseCode} (${value}% OFF)`);
   e.target.reset();
 }
 
-// Adicionar Membro Equipe
-function addTeamMember(e) {
-  e.preventDefault();
-  alert('Membro adicionado ao sistema com sucesso! (Simulação)');
-  e.target.reset();
-}
-
-// ================= INICIALIZAÇÃO GERAL =================
+// ================= INIT =================
 document.addEventListener('DOMContentLoaded', () => {
   updateHeaderAuth();
-  renderCart();
   
-  // Renderiza os produtos na tela inicial
   const grid = document.getElementById('productsGrid');
   if (grid) {
     grid.innerHTML = DB.get('products', []).map(p => `
@@ -257,3 +206,11 @@ document.addEventListener('DOMContentLoaded', () => {
     `).join('');
   }
 });
+
+function addToCart(id) {
+  let cart = DB.get('cart', []);
+  const item = cart.find(i => i.id === id);
+  if (item) item.qty += 1; else cart.push({ id, qty: 1 });
+  DB.set('cart', cart);
+  alert('Adicionado ao carrinho!');
+}
