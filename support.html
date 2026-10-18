@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <title>Atendimento — YumiStore</title>
-  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body class="auth-body wide-body">
   <div class="dashboard-card">
-    <a href="/" class="logo">🌸 Yumi<span>Store</span></a>
+    <a href="index.html" class="logo">🌸 Yumi<span>Store</span></a>
     <h2 style="text-align:center;">💬 Central de Atendimento</h2>
     <p class="center muted" style="margin-bottom:24px;">Abra um ticket e nossa equipe responderá em até 24h.</p>
 
@@ -27,22 +27,23 @@
     </form>
 
     <div class="dashboard-actions" style="margin-top:24px;">
-      <a href="/dashboard" class="btn-outline">Meu painel</a>
+      <a href="dashboard.html" class="btn-outline">Meu painel</a>
     </div>
   </div>
 
+  <script src="app.js"></script>
   <script>
-    document.getElementById('ticketForm').addEventListener('submit', async (e) => {
+    if (!requireLogin()) throw new Error('redirect');
+
+    document.getElementById('ticketForm').addEventListener('submit', (e) => {
       e.preventDefault();
       const body = Object.fromEntries(new FormData(e.target));
-      const res = await fetch('/api/tickets', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-      if (res.status === 401) return window.location.href = '/login';
-      const data = await res.json();
-      if (data.success) {
-        document.getElementById('successMsg').textContent = '✅ Ticket ' + data.ticket.id + ' aberto! Redirecionando...';
-        setTimeout(() => window.location.href = '/ticket?id=' + data.ticket.id, 1500);
+      const res = createTicket(body.subject, body.message);
+      if (res.success) {
+        document.getElementById('successMsg').textContent = '✅ Ticket ' + res.ticket.id + ' aberto! Redirecionando...';
+        setTimeout(() => window.location.href = 'ticket.html?id=' + res.ticket.id, 1200);
       } else {
-        document.getElementById('errorMsg').textContent = data.error;
+        document.getElementById('errorMsg').textContent = res.error;
       }
     });
   </script>
