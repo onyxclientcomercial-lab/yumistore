@@ -6,14 +6,14 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body class="bg-grid">
-  <div class="auth-card" style="max-width:400px; margin:100px auto; background:var(--bg-card); padding:40px; border-radius:12px; border:1px solid var(--border);">
+  <div style="max-width:400px; margin:100px auto; background:var(--bg-card); padding:40px; border-radius:12px; border:1px solid var(--border);">
     <h2 style="text-align:center; margin-bottom:20px;">Entrar na conta</h2>
     <form id="loginForm">
-      <!-- O placeholder avisa que pode ser email ou nick -->
-      <input type="text" id="identifier" placeholder="E-mail ou Nick de usuário" required style="width:100%; padding:12px; margin-bottom:15px; background:var(--bg-panel); border:1px solid var(--border); color:white; border-radius:6px;">
+      <!-- Aceita os dois tipos de dados -->
+      <input type="text" id="identifier" placeholder="E-mail ou Nick" required style="width:100%; padding:12px; margin-bottom:15px; background:var(--bg-panel); border:1px solid var(--border); color:white; border-radius:6px;">
       <input type="password" id="password" placeholder="Senha" required style="width:100%; padding:12px; margin-bottom:15px; background:var(--bg-panel); border:1px solid var(--border); color:white; border-radius:6px;">
       <button type="submit" class="btn-primary" style="width:100%;">Entrar</button>
-      <p id="errorMsg" style="color: #ef4444; margin-top: 10px; font-size: 0.9rem; text-align:center;"></p>
+      <p id="errorMsg" style="color: var(--red); margin-top: 10px; font-size: 0.9rem; text-align:center;"></p>
     </form>
     <p style="margin-top: 20px; font-size: 0.9rem; color: var(--text-muted); text-align:center;">
       Não tem conta? <a href="register.html" style="color: var(--purple);">Cadastre-se</a>
@@ -29,7 +29,7 @@
       
       const res = login(id, pass);
       if (res.success) {
-        if (res.role === 'admin') window.location.href = 'index.html'; // Admin vai pra loja com painel disponível
+        if (res.role === 'admin') window.location.href = 'index.html'; // Admin cai na loja com painel liberado
         else window.location.href = 'dashboard.html';
       } else {
         document.getElementById('errorMsg').innerText = res.error;
