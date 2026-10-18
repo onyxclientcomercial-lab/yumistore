@@ -2,33 +2,39 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Criar conta — YumiStore</title>
+  <title>Criar Conta — YumiStore</title>
   <link rel="stylesheet" href="style.css">
 </head>
-<body class="auth-body">
+<body class="bg-grid">
   <div class="auth-card">
-    <a href="index.html" class="logo">🌸 Yumi<span>Store</span></a>
-    <h2>Criar nova conta</h2>
-    <form id="registerForm">
-      <label>Nome de usuário<input type="text" name="username" required minlength="3" maxlength="20" placeholder="SteveBR"></label>
-      <label>E-mail<input type="email" name="email" required placeholder="seu@email.com"></label>
-      <label>Senha (mín. 8)<input type="password" name="password" required minlength="8" placeholder="••••••••"></label>
-      <button type="submit" class="btn-primary full">Criar conta</button>
-      <p class="error" id="errorMsg"></p>
+    <h1 class="logo" style="justify-content:center; margin-bottom: 20px;">🌸 Yumi<span>Store</span></h1>
+    <h2>Criar Conta</h2>
+    <form id="regForm" style="margin-top: 20px;">
+      <input type="text" id="name" placeholder="Nome de usuário" required>
+      <input type="email" id="email" placeholder="E-mail" required>
+      <input type="password" id="password" placeholder="Senha" required>
+      <button type="submit" class="btn-primary">Cadastrar</button>
+      <p id="errorMsg" style="color: #ef4444; margin-top: 10px; font-size: 0.9rem;"></p>
     </form>
-    <p class="auth-footer">Já tem conta? <a href="login.html">Entrar</a></p>
+    <p style="margin-top: 20px; font-size: 0.9rem; color: var(--text-muted);">
+      Já tem conta? <a href="login.html" style="color: var(--purple);">Entrar</a>
+    </p>
   </div>
+
   <script src="app.js"></script>
   <script>
-    document.getElementById('registerForm').addEventListener('submit', (e) => {
+    document.getElementById('regForm').addEventListener('submit', (e) => {
       e.preventDefault();
-      const body = Object.fromEntries(new FormData(e.target));
-      const res = register(body.username, body.email, body.password);
+      const res = register(
+        document.getElementById('name').value,
+        document.getElementById('email').value,
+        document.getElementById('password').value
+      );
       if (res.success) {
-        alert('✅ Conta criada! Faça login.');
+        alert('Conta criada! Faça login.');
         window.location.href = 'login.html';
       } else {
-        document.getElementById('errorMsg').textContent = res.error;
+        document.getElementById('errorMsg').innerText = res.error;
       }
     });
   </script>
